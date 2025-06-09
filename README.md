@@ -1,1 +1,5 @@
-# Secret-Roblox-lua-script-esp-aimbot-fly
+# ESP opens himself automaticly
+
+# Aimbot = Right Click
+
+# Fly = "F"
