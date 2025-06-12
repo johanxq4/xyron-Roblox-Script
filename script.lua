@@ -1,28 +1,34 @@
+-- Gerekli servisleri tanımlayın
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 local Mouse = LocalPlayer:GetMouse()
-local FlySpeed = 50
-local Flying = false
-local FlyToggleKey = Enum.KeyCode.F -- Fly aç/kapa tuşu
-
--- ESP ayarları
-local ESPEnabled = true
 local ESPColor = Color3.fromRGB(0, 255, 0)
-
--- Aimbot ayarları
 local AimbotEnabled = true
-local AimKey = Enum.UserInputType.MouseButton2 -- Sağ mouse tuşu ile hedefe nişan al
 
--- Fly için BodyVelocity objesi
-local bodyVelocity
+-- Gui Oluşturma
+local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
+local Frame = Instance.new("Frame", ScreenGui)
+Frame.Size = UDim2.new(0, 200, 0, 220)
+Frame.Position = UDim2.new(0, 100, 0, 100)
+Frame.BackgroundColor3 = Color3.fromRGB(43, 13, 97)
 
--- ESP kutuları
+-- Butonlar
+local function createButton(name, posY, func)
+    local button = Instance.new("TextButton", Frame)
+    button.Size = UDim2.new(0, 180, 0, 40)
+    button.Position = UDim2.new(0, 10, 0, posY)
+    button.Text = name
+    button.BackgroundColor3 = Color3.fromRGB(66, 49, 137)
+    button.TextColor3 = Color3.new(1, 1, 1)
+    button.MouseButton1Click:Connect(func)
+end
+
+-- ESP
+local function enableESP()
 local Boxes = {}
-
--- Kutuları oluştur
 local function CreateBox()
     local box = Drawing.new("Square")
     box.Visible = false
@@ -53,33 +59,8 @@ local function GetClosestEnemy()
     return target
 end
 
--- ESP güncellemesi
-RunService.RenderStepped:Connect(function()
-    if ESPEnabled then
-        for _, player in pairs(Players:GetPlayers()) do
-            if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                local rootPart = player.Character.HumanoidRootPart
-                local screenPos, onScreen = Camera:WorldToViewportPoint(rootPart.Position)
-
-                if onScreen then
-                    if not Boxes[player] then
-                        Boxes[player] = CreateBox()
-                    end
-                    local box = Boxes[player]
-                    box.Size = Vector2.new(50, 70)
-                    box.Position = Vector2.new(screenPos.X - 25, screenPos.Y - 35)
-                    box.Visible = true
-                elseif Boxes[player] then
-                    Boxes[player].Visible = false
-                end
-            elseif Boxes[player] then
-                Boxes[player].Visible = false
-            end
-        end
-    end
-end)
-
--- Aimbot güncellemesi
+-- Aimbot
+local function enableAimbot()
 RunService.RenderStepped:Connect(function()
     if AimbotEnabled and UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2) then
         local target = GetClosestEnemy()
@@ -90,51 +71,40 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- Fly aç/kapa
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if not gameProcessed then
-        if input.KeyCode == FlyToggleKey then
-            Flying = not Flying
-            if Flying then
-                if not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then return end
-                local hrp = LocalPlayer.Character.HumanoidRootPart
-                bodyVelocity = Instance.new("BodyVelocity")
-                bodyVelocity.Velocity = Vector3.new(0, 0, 0)
-                bodyVelocity.MaxForce = Vector3.new(1e5, 1e5, 1e5)
-                bodyVelocity.Parent = hrp
-            else
-                if bodyVelocity then
-                    bodyVelocity:Destroy()
-                    bodyVelocity = nil
-                end
+-- Fly
+local function enableFly()
+    local plr = game.Players.LocalPlayer
+    local char = plr.Character
+    local humanoidRootPart = char:WaitForChild("HumanoidRootPart")
+    local flying = true
+    local bodyGyro = Instance.new("BodyGyro", humanoidRootPart)
+    local bodyVelocity = Instance.new("BodyVelocity", humanoidRootPart)
+    bodyGyro.P = 9e4
+    bodyGyro.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+    bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+    bodyVelocity.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+    game:GetService("UserInputService").InputBegan:Connect(function(input)
+        if input.KeyCode == Enum.KeyCode.Space then
+            bodyVelocity.Velocity = Vector3.new(0, 50, 0)
+        end
+    end)
+end
+
+-- Auto Farm
+local function enableAutoFarm()
+    while true do
+        wait(1)
+        for _, v in pairs(workspace:GetDescendants()) do
+            if v:IsA("TouchTransmitter") and v.Parent then
+                firetouchinterest(game.Players.LocalPlayer.Character.HumanoidRootPart, v.Parent, 0)
+                firetouchinterest(game.Players.LocalPlayer.Character.HumanoidRootPart, v.Parent, 1)
             end
         end
     end
-end)
+end
 
--- Fly hareketi
-RunService.Heartbeat:Connect(function()
-    if Flying and bodyVelocity and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        local direction = Vector3.new(0, 0, 0)
-        if UserInputService:IsKeyDown(Enum.KeyCode.W) then
-            direction = direction + Camera.CFrame.LookVector
-        end
-        if UserInputService:IsKeyDown(Enum.KeyCode.S) then
-            direction = direction - Camera.CFrame.LookVector
-        end
-        if UserInputService:IsKeyDown(Enum.KeyCode.A) then
-            direction = direction - Camera.CFrame.RightVector
-        end
-        if UserInputService:IsKeyDown(Enum.KeyCode.D) then
-            direction = direction + Camera.CFrame.RightVector
-        end
-        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
-            direction = direction + Vector3.new(0, 1, 0)
-        end
-        if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
-            direction = direction - Vector3.new(0, 1, 0)
-        end
-        direction = direction.Unit * FlySpeed
-        bodyVelocity.Velocity = direction
-    end
-end)
+-- Butonları ekle
+createButton("ESP", 10, enableESP)
+createButton("Aimbot(runs with right click)", 60, enableAimbot)
+createButton("Fly", 110, enableFly)
+createButton("AutoFarm", 160, enableAutoFarm)
