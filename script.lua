@@ -1,4 +1,4 @@
--- Gerekli servisleri tanımlayın
+-- Xyron Official Roblox Script
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -8,7 +8,7 @@ local Mouse = LocalPlayer:GetMouse()
 local ESPColor = Color3.fromRGB(0, 255, 0)
 local AimbotEnabled = true
 
--- Gui Oluşturma
+-- GUI
 local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
 ScreenGui.ResetOnSpawn = false
 local Frame = Instance.new("Frame", ScreenGui)
@@ -16,7 +16,7 @@ Frame.Size = UDim2.new(0, 200, 0, 220)
 Frame.Position = UDim2.new(0, 100, 0, 100)
 Frame.BackgroundColor3 = Color3.fromRGB(43, 13, 97)
 
--- Buton fonksiyonu
+-- Button Functions
 local function createButton(name, posY, func)
     local button = Instance.new("TextButton", Frame)
     button.Size = UDim2.new(0, 180, 0, 40)
@@ -51,7 +51,7 @@ local function enableESP()
     end)
 end
 
--- En yakın düşmanı bul
+-- Get Closest Enemy
 local function GetClosestEnemy()
     local closestDist = math.huge
     local target = nil
@@ -118,7 +118,7 @@ local function enableAutoFarm()
     end)
 end
 
--- Butonları ekle
+-- Add Buttons
 createButton("ESP Aç", 10, enableESP)
 createButton("Aimbot (RMB)", 60, enableAimbot)
 createButton("Fly", 110, enableFly)
